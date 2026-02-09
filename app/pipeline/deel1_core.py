@@ -20,8 +20,27 @@ def run_deel1(*, templates_path: str, beslispad_spread_path: str, beslispad_ep_p
     ns['VERHALENAANBOD_PATH'] = verhalenaanbod_path
     ns['OUT_PATH'] = out_path
 
-    code = CODE_FILE.read_text(encoding="utf-8")
-    exec(code, ns, ns)
+    # Run DEEL1 inside the output directory so relative writes land there
+    old_cwd = os.getcwd()
+    os.makedirs(os.path.dirname(out_path), exist_ok=True)
+    os.chdir(os.path.dirname(out_path))
+    try:
+        code = CODE_FILE.read_text(encoding="utf-8")
+        exec(code, ns, ns)
+    finally:
+        os.chdir(old_cwd)
+
+    # If the notebook wrote with a different name, try to locate the newest xlsx in the folder
+    out_dir = os.path.dirname(out_path)
+    if not os.path.exists(out_path):
+    candidates = [p for p in os.listdir(out_dir) if p.lower().endswith(".xlsx")]
+      if candidates:
+          # pick newest
+          newest = max(candidates, key=lambda fn: os.path.getmtime(os.path.join(out_dir, fn)))
+          found = os.path.join(out_dir, newest)
+          # If it’s not already the expected name, rename to the expected name
+          if found != out_path:
+              os.replace(found, out_path)
 
     if not os.path.exists(out_path):
         raise RuntimeError(f"DEEL 1 finished but output not found: {out_path}")
