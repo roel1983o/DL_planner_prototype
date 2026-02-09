@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Krantenplanner</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="wrap">
+    <header class="header">
+      <img class="logo" src="/static/logo.jpg" alt="De Limburger">
+      <h1>Krantenplanner</h1>
+    </header>
+
+    <section class="card">
+      <h2>Upload Excel</h2>
+      <p>Upload één bestand (input voor de PARSER). De rest staat vast in de tool.</p>
+
+      <form id="uploadForm">
+        <input id="fileInput" type="file" name="file" accept=".xlsx,.xls" required>
+        <button id="runBtn" type="submit">Start</button>
+      </form>
+
+      <div id="status" class="status">Nog niet gestart.</div>
+
+      <div class="downloads">
+        <a id="dl1" class="btn disabled" href="#" aria-disabled="true">Download Excel (DEEL 1)</a>
+        <a id="dl2" class="btn disabled" href="#" aria-disabled="true">Download PDF (DEEL 2)</a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <small>Public tool • draait op Render</small>
+    </footer>
+  </div>
+
+<script>
+const form = document.getElementById('uploadForm');
+const statusEl = document.getElementById('status');
+const dl1 = document.getElementById('dl1');
+const dl2 = document.getElementById('dl2');
+
+function setDownloads(jobId, enabled) {
+  if (enabled) {
+    dl1.classList.remove('disabled'); dl1.setAttribute('aria-disabled','false');
+    dl2.classList.remove('disabled'); dl2.setAttribute('aria-disabled','false');
+    dl1.href = `/api/download/deel1/${jobId}`;
+    dl2.href = `/api/download/deel2/${jobId}`;
+  } else {
+    dl1.classList.add('disabled'); dl1.setAttribute('aria-disabled','true'); dl1.href = '#';
+    dl2.classList.add('disabled'); dl2.setAttribute('aria-disabled','true'); dl2.href = '#';
+  }
+}
+
+async function poll(jobId) {
+  setDownloads(jobId, false);
+  while (true) {
+    const r = await fetch(`/api/status/${jobId}`);
+    const j = await r.json();
+    if (j.status === 'error') {
+      statusEl.textContent = `Fout: ${j.error || 'Onbekend'}`;
+      break;
+    }
+    if (j.status === 'done') {
+      statusEl.textContent = 'Klaar. Je kunt nu downloaden.';
+      setDownloads(jobId, true);
+      break;
+    }
+    statusEl.textContent = `Bezig: ${j.step || j.status}...`;
+    await new Promise(res => setTimeout(res, 1500));
+  }
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const file = document.getElementById('fileInput').files[0];
+  if (!file) return;
+
+  statusEl.textContent = 'Uploaden...';
+  setDownloads('', false);
+
+  const fd = new FormData();
+  fd.append('file', file);
+
+  const r = await fetch('/api/run', { method: 'POST', body: fd });
+  const j = await r.json();
+  if (!r.ok) {
+    statusEl.textContent = `Fout: ${j.detail || 'Upload mislukt'}`;
+    return;
+  }
+  statusEl.textContent = 'Gestart...';
+  poll(j.job_id);
+});
+</script>
+</body>
+</html>
