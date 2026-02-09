@@ -1,3 +1,5 @@
+import openpyxl  # required for openpyxl.load_workbook usage
+
 # Auto-generated: DEEL 1 notebook code (cleaned)
 def copy_storylist(wb, src_name, dst_name):
     if src_name not in wb.sheetnames:
