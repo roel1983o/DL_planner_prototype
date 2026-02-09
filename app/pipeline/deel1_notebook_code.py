@@ -1,10 +1,16 @@
-import openpyxl  # required for openpyxl.load_workbook usage
+# ---- standaard library ----
 import os
-import datetime
 import re
-import openpyxl
+import itertools
+import datetime
+from datetime import timedelta
+from pathlib import Path
+from collections import defaultdict, Counter
+
+# ---- externe libs ----
 import pandas as pd
 import numpy as np
+import openpyxl
 
 # Auto-generated: DEEL 1 notebook code (cleaned)
 def copy_storylist(wb, src_name, dst_name):
