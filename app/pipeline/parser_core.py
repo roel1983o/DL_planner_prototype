@@ -1553,7 +1553,6 @@ def save_verhalenaanbod_xlsx(df: pd.DataFrame) -> str:
     ]
 
     # Voeg extra kolommen toe aan elk tabblad (behalve Logfile en Stats)
-    _
     # --- vNEW: voeg kolom 'Classificatie' toe (kolom E) ---
     def _insert_classificatie(_df, _sheet_name):
         if _sheet_name in ["Logfile", "Stats", "Planningsvolgorde"]:
