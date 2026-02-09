@@ -22,8 +22,16 @@ def run_pipeline(*, uploaded_parser_input: str, workdir: str,
 
     # 1) PARSER
     df = parse_excel_story_list(uploaded_parser_input)
-    verhalenaanbod_path = os.path.join(workdir, "Upload_Verhalenaanbod_Planningsoverzicht.xlsx")
-    save_verhalenaanbod_xlsx(df, output_path=verhalenaanbod_path)
+
+    # save_verhalenaanbod_xlsx schrijft standaard naar current working directory
+    cwd = os.getcwd()
+    os.chdir(workdir)
+    try:
+        fname = save_verhalenaanbod_xlsx(df)  # retourneert bestandsnaam, bv. "verhalenaanbod.xlsx"
+    finally:
+        os.chdir(cwd)
+
+    verhalenaanbod_path = os.path.join(workdir, fname)
 
     # 2) DEEL 1
     excel_assets = os.path.join(assets_dir, "excel")
